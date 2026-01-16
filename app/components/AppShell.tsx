@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { HeaderTitleCard } from "./HeaderTitleCard";
 import { SidebarNav } from "./SidebarNav";
 import { AdColumn } from "./AdColumn";
@@ -7,7 +9,7 @@ type AppShellProps = {
   siteTitle: string;
   activePage: string;
   onChangePage: (page: string) => void;
-  navItems: { key: string; label: string; icon: string }[]; // ✅ add this
+  navItems: { key: string; label: string; icon: string }[];
   children: React.ReactNode;
 };
 
@@ -15,23 +17,44 @@ export function AppShell({
   siteTitle,
   activePage,
   onChangePage,
+  navItems,
   children,
 }: AppShellProps) {
+  const [isSideNavOpen, setIsSideNavOpen] = useState(true);
+
   return (
     <div style={styles.root}>
       {/* Top title card centered */}
       <div style={styles.headerRow}>
-        <HeaderTitleCard title={siteTitle} />
+        <HeaderTitleCard
+          title={siteTitle}
+          isSideNavOpen={isSideNavOpen}
+          onToggleSideNav={() => setIsSideNavOpen((prev) => !prev)}
+        />
       </div>
 
       {/* Body: Sidebar | Main Page Card | Ads */}
-      <div style={styles.bodyRow}>
-        <aside style={styles.leftCol}>
-          <SidebarNav activePage={activePage} onChangePage={onChangePage} />
-        </aside>
+      <div
+        style={{
+          ...styles.bodyRow,
+          gridTemplateColumns: isSideNavOpen ? "72px 1fr 260px" : "1fr 260px",
+        }}
+      >
+        {/* Sidebar (toggleable) */}
+        {isSideNavOpen && (
+          <aside style={styles.leftCol}>
+            <SidebarNav
+              navItems={navItems}
+              activePage={activePage}
+              onChangePage={onChangePage}
+            />
+          </aside>
+        )}
 
+        {/* Main content */}
         <section style={styles.centerCol}>{children}</section>
 
+        {/* Ads (always visible) */}
         <aside style={styles.rightCol}>
           <AdColumn />
         </aside>
@@ -61,9 +84,8 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "stretch",
   },
   leftCol: {
-    border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: 16,
-    padding: 12,
+    padding: 6,
+    justifyItems: "center",
   },
   centerCol: {
     minWidth: 0,
